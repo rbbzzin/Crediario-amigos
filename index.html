@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#080a09">
+  <title>Meu Controle | Painel financeiro</title>
+  <style>
+    :root {
+      --bg:#080a09; --panel:#101412; --panel2:#151b17; --line:#29332d;
+      --text:#f4f7f5; --muted:#a2ada6; --green:#27c46b; --green-dark:#07351d;
+      --orange:#ff884d; --red:#ff6262; --radius:20px;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(ellipse at top,#102017 0%,var(--bg) 42%);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;min-height:100vh}
+    button,input{font:inherit}
+    button{cursor:pointer}
+    .wrap{width:min(1120px,calc(100% - 32px));margin:34px auto 60px}
+    header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:28px}
+    .brand{font-size:clamp(1.35rem,4vw,2rem);font-weight:800;letter-spacing:-.04em}
+    .pill{background:#082d19;color:var(--green);border:1px solid #14532d;padding:10px 16px;border-radius:999px;font-weight:650;font-size:.92rem}
+    .intro{color:var(--muted);margin:-14px 0 24px}
+    .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:30px}
+    .stat{background:linear-gradient(145deg,#121915,#0e1210);border:1px solid var(--line);border-radius:var(--radius);padding:22px}
+    .stat-label{color:var(--muted);font-size:.92rem;margin-bottom:10px}
+    .stat-value{font-size:clamp(1.55rem,4vw,2.25rem);font-weight:800;letter-spacing:-.04em}
+    .green{color:var(--green)}
+    .section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:28px 0 16px}
+    h2{font-size:1.25rem;margin:0}
+    .btn{border:0;border-radius:12px;padding:12px 16px;font-weight:750;transition:.18s}
+    .btn:hover{transform:translateY(-1px);filter:brightness(1.08)}
+    .btn-primary{background:var(--green);color:#04150b}
+    .btn-secondary{background:#202923;color:var(--text);border:1px solid #344139}
+    .btn-danger{background:#3a1717;color:#ffb0b0;border:1px solid #633030}
+    .people{display:grid;gap:14px}
+    .person{background:linear-gradient(145deg,#111613,#0c100e);border:1px solid var(--line);border-radius:var(--radius);padding:21px}
+    .person-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+    .person-name{font-size:1.25rem;font-weight:800;overflow-wrap:anywhere}
+    .status{font-size:.8rem;font-weight:750;padding:7px 11px;border-radius:999px;background:#3a2115;color:var(--orange);white-space:nowrap}
+    .status.paid{background:#0c321d;color:var(--green)}
+    .remaining{font-size:clamp(1.7rem,5vw,2.2rem);font-weight:850;margin:17px 0 5px;letter-spacing:-.04em}
+    .detail{color:var(--muted);font-size:.92rem}
+    .progress{height:9px;background:#29312c;border-radius:99px;overflow:hidden;margin:17px 0 8px}
+    .progress span{display:block;height:100%;background:linear-gradient(90deg,#159b4c,var(--green));border-radius:99px}
+    .progress-label{color:var(--green);font-size:.9rem;font-weight:650}
+    .person-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:19px}
+    .person-actions .btn{padding:10px 13px;font-size:.9rem}
+    .history{margin-top:17px;border-top:1px solid var(--line);padding-top:14px}
+    .history summary{color:#cbd5ce;cursor:pointer;font-weight:650}
+    .history-list{display:grid;gap:8px;margin-top:12px}
+    .payment-row{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:.9rem;padding:9px 11px;background:#0b100d;border-radius:10px}
+    .payment-row strong{color:var(--green)}
+    .empty{border:1px dashed #344139;border-radius:var(--radius);padding:38px 20px;text-align:center;color:var(--muted)}
+    .empty strong{display:block;color:var(--text);font-size:1.1rem;margin-bottom:7px}
+    .footer-note{color:#7f8b83;font-size:.82rem;line-height:1.5;margin-top:25px}
+    .toolbar{display:flex;gap:9px;flex-wrap:wrap}
+    .modal-backdrop{position:fixed;inset:0;background:#000b;display:none;align-items:center;justify-content:center;padding:16px;z-index:10}
+    .modal-backdrop.open{display:flex}
+    .modal{width:min(460px,100%);background:#111713;border:1px solid #344139;border-radius:22px;padding:23px;box-shadow:0 24px 80px #000a}
+    .modal h3{font-size:1.3rem;margin:0 0 18px}
+    .field{display:grid;gap:7px;margin:14px 0}
+    label{color:#c3cec6;font-size:.9rem;font-weight:650}
+    input{width:100%;background:#080d0a;border:1px solid #354239;border-radius:11px;padding:13px;color:var(--text);outline:none}
+    input:focus{border-color:var(--green);box-shadow:0 0 0 3px #27c46b20}
+    .modal-actions{display:flex;justify-content:flex-end;gap:9px;margin-top:21px}
+    .hint{color:var(--muted);font-size:.82rem;line-height:1.45}
+    @media(max-width:700px){.wrap{margin:22px auto 40px}.summary{grid-template-columns:1fr 1fr}.stat:last-child{grid-column:1/-1}.stat{padding:17px}.section-head{align-items:flex-start;flex-direction:column}.section-head .btn{width:100%}.person{padding:17px}}
+    @media(max-width:390px){header{align-items:flex-start;flex-direction:column}.summary{grid-template-columns:1fr}.stat:last-child{grid-column:auto}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header>
+      <div class="brand">MEU CONTROLE</div>
+      <div class="pill">● Painel financeiro</div>
+    </header>
+    <p class="intro">Organize suas contas e acompanhe cada pagamento.</p>
+
+    <section class="summary" aria-label="Resumo financeiro">
+      <div class="stat"><div class="stat-label">Total a receber</div><div class="stat-value green" id="totalRemaining">R$ 0,00</div></div>
+      <div class="stat"><div class="stat-label">Já recebido</div><div class="stat-value" id="totalPaid">R$ 0,00</div></div>
+      <div class="stat"><div class="stat-label">Total das dívidas</div><div class="stat-value" id="totalOriginal">R$ 0,00</div></div>
+    </section>
+
+    <div class="section-head">
+      <h2>Pessoas que estão devendo</h2>
+      <div class="toolbar">
+        <button class="btn btn-secondary" id="exportBtn" type="button">Exportar backup</button>
+        <button class="btn btn-primary" id="addBtn" type="button">＋ Adicionar pessoa</button>
+      </div>
+    </div>
+    <section class="people" id="peopleList"></section>
+    <p class="footer-note">Seus registros ficam salvos neste navegador. Use “Exportar backup” para guardar uma cópia. Esta versão não sincroniza automaticamente entre aparelhos.</p>
+  </main>
+
+  <div class="modal-backdrop" id="personModal" role="dialog" aria-modal="true" aria-labelledby="personModalTitle">
+    <form class="modal" id="personForm">
+      <h3 id="personModalTitle">Adicionar pessoa</h3>
+      <div class="field"><label for="personName">Nome da pessoa</label><input id="personName" maxlength="60" placeholder="Ex.: João" required></div>
+      <div class="field"><label for="personAmount">Valor inicial da dívida (R$)</label><input id="personAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Ex.: 100,00" required></div>
+      <p class="hint" id="personFormHint">O valor poderá ser atualizado depois, sem apagar o histórico de pagamentos.</p>
+      <div class="modal-actions"><button class="btn btn-secondary" type="button" data-close="personModal">Cancelar</button><button class="btn btn-primary" type="submit">Salvar pessoa</button></div>
+    </form>
+  </div>
+
+  <div class="modal-backdrop" id="paymentModal" role="dialog" aria-modal="true" aria-labelledby="paymentModalTitle">
+    <form class="modal" id="paymentForm">
+      <h3 id="paymentModalTitle">Adicionar pagamento</h3>
+      <div class="field"><label for="paymentAmount">Valor recebido (R$)</label><input id="paymentAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Ex.: 20,00" required></div>
+      <p class="hint" id="paymentHint"></p>
+      <div class="modal-actions"><button class="btn btn-secondary" type="button" data-close="paymentModal">Cancelar</button><button class="btn btn-primary" type="submit">Registrar pagamento</button></div>
+    </form>
+  </div>
+
+<script>
+(() => {
+  const STORAGE_KEY = 'meuControleDividas_v1';
+  let people = loadPeople();
+  let editingId = null;
+  let payingId = null;
+  const $ = id => document.getElementById(id);
+  const money = value => (Number(value) || 0).toLocaleString('pt-BR', {style:'currency', currency:'BRL'});
+  const dateLabel = value => new Date(value).toLocaleDateString('pt-BR');
+  const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function loadPeople() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+      return Array.isArray(saved) ? saved : [];
+    } catch { return []; }
+  }
+  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(people)); }
+  function paidOf(person) { return person.payments.reduce((sum, p) => sum + Number(p.amount), 0); }
+  function remainingOf(person) { return Math.max(0, Number(person.initial) - paidOf(person)); }
+
+  function render() {
+    const totalOriginal = people.reduce((sum,p) => sum + Number(p.initial), 0);
+    const totalPaid = people.reduce((sum,p) => sum + paidOf(p), 0);
+    const totalRemaining = people.reduce((sum,p) => sum + remainingOf(p), 0);
+    $('totalOriginal').textContent = money(totalOriginal);
+    $('totalPaid').textContent = money(totalPaid);
+    $('totalRemaining').textContent = money(totalRemaining);
+
+    if (!people.length) {
+      $('peopleList').innerHTML = '<div class="empty"><strong>Nenhuma pessoa cadastrada ainda.</strong>Adicione alguém para começar a controlar os pagamentos.</div>';
+      return;
+    }
+    $('peopleList').innerHTML = people.map(person => {
+      const paid = paidOf(person), remaining = remainingOf(person);
+      const percent = person.initial > 0 ? Math.min(100, Math.round(paid / person.initial * 100)) : 100;
+      const isPaid = remaining <= 0;
+      const history = person.payments.length
+        ? person.payments.slice().reverse().map(p => `<div class="payment-row"><span>${dateLabel(p.date)}</span><strong>+ ${money(p.amount)}</strong></div>`).join('')
+        : '<div class="hint">Nenhum pagamento registrado.</div>';
+      return `<article class="person">
+        <div class="person-top"><div class="person-name">${escapeHTML(person.name)}</div><span class="status ${isPaid?'paid':''}">${isPaid?'Quitado':'Devendo'}</span></div>
+        <div class="remaining">${money(remaining)}</div>
+        <div class="detail">Valor inicial: ${money(person.initial)} · Pago: ${money(paid)}</div>
+        <div class="progress"><span style="width:${percent}%"></span></div>
+        <div class="progress-label">${percent}% quitado</div>
+        <div class="person-actions">
+          ${!isPaid ? `<button class="btn btn-primary" type="button" data-pay="${person.id}">＋ Adicionar pagamento</button>` : ''}
+          <button class="btn btn-secondary" type="button" data-edit="${person.id}">Editar</button>
+          <button class="btn btn-danger" type="button" data-delete="${person.id}">Excluir</button>
+        </div>
+        <details class="history"><summary>Histórico de pagamentos (${person.payments.length})</summary><div class="history-list">${history}</div></details>
+      </article>`;
+    }).join('');
+  }
+
+  function openModal(id) { $(id).classList.add('open'); }
+  function closeModal(id) { $(id).classList.remove('open'); }
+  document.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', () => closeModal(btn.dataset.close)));
+  document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.addEventListener('click', e => { if (e.target === backdrop) closeModal(backdrop.id); }));
+
+  $('addBtn').addEventListener('click', () => {
+    editingId = null;
+    $('personModalTitle').textContent = 'Adicionar pessoa';
+    $('personName').value = '';
+    $('personAmount').value = '';
+    $('personFormHint').textContent = 'O valor poderá ser atualizado depois, sem apagar o histórico de pagamentos.';
+    openModal('personModal');
+    $('personName').focus();
+  });
+
+  $('personForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const name = $('personName').value.trim();
+    const amount = Math.round(Number($('personAmount').value) * 100) / 100;
+    if (!name || !Number.isFinite(amount) || amount <= 0) return;
+    if (editingId) {
+      const person = people.find(p => p.id === editingId);
+      if (!person) return;
+      if (amount < paidOf(person)) { alert('O valor inicial não pode ser menor que o total já pago.'); return; }
+      person.name = name;
+      person.initial = amount;
+    } else {
+      people.push({id: (crypto.randomUUID ? crypto.randomUUID() : String(Date.now()+Math.random())), name, initial:amount, payments:[]});
+    }
+    save(); render(); closeModal('personModal');
+  });
+
+  $('peopleList').addEventListener('click', e => {
+    const payBtn = e.target.closest('[data-pay]');
+    const editBtn = e.target.closest('[data-edit]');
+    const deleteBtn = e.target.closest('[data-delete]');
+    if (payBtn) {
+      const person = people.find(p => p.id === payBtn.dataset.pay);
+      if (!person) return;
+      payingId = person.id;
+      $('paymentAmount').value = '';
+      $('paymentAmount').max = remainingOf(person).toFixed(2);
+      $('paymentHint').textContent = `${person.name} ainda deve ${money(remainingOf(person))}.`;
+      openModal('paymentModal'); $('paymentAmount').focus();
+    }
+    if (editBtn) {
+      const person = people.find(p => p.id === editBtn.dataset.edit);
+      if (!person) return;
+      editingId = person.id;
+      $('personModalTitle').textContent = 'Editar pessoa';
+      $('personName').value = person.name;
+      $('personAmount').value = Number(person.initial).toFixed(2);
+      $('personFormHint').textContent = `Já pago: ${money(paidOf(person))}. O valor inicial não pode ficar abaixo do que já foi pago.`;
+      openModal('personModal'); $('personName').focus();
+    }
+    if (deleteBtn) {
+      const person = people.find(p => p.id === deleteBtn.dataset.delete);
+      if (!person) return;
+      if (confirm(`Excluir ${person.name} e todo o histórico de pagamentos? Essa ação não pode ser desfeita.`)) {
+        people = people.filter(p => p.id !== person.id); save(); render();
+      }
+    }
+  });
+
+  $('paymentForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const person = people.find(p => p.id === payingId);
+    if (!person) return;
+    const amount = Math.round(Number($('paymentAmount').value) * 100) / 100;
+    if (!Number.isFinite(amount) || amount <= 0) return;
+    if (amount > remainingOf(person) + 0.001) { alert(`O pagamento não pode ser maior que o saldo devedor (${money(remainingOf(person))}).`); return; }
+    person.payments.push({amount, date:new Date().toISOString()});
+    save(); render(); closeModal('paymentModal');
+  });
+
+  $('exportBtn').addEventListener('click', () => {
+    const blob = new Blob([JSON.stringify({exportadoEm:new Date().toISOString(), people}, null, 2)], {type:'application/json'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url; a.download = 'backup-meu-controle.json'; a.click();
+    URL.revokeObjectURL(url);
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
